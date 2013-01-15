@@ -175,8 +175,10 @@ handle_rest_request(Module, Path, Opts, GlobalOpts, HTTPRequest) ->
         process_reply(Module:process_rest(Request), Request)
     catch
         {error, Reason} when is_atom(Reason) ->
+            ?ERROR_MSG("Error in mod_restful: ~p~n~p", [Reason, erlang:get_stacktrace()]),
             {error, Reason};
-        _:_ = _Error ->
+        _:_ = Error ->
+            ?ERROR_MSG("Error in mod_restful: ~p~n~p", [Error, erlang:get_stacktrace()]),
             {error, bad_request}
     end.
 
@@ -186,9 +188,13 @@ handle_rest_request(Module, Path, Opts, GlobalOpts, HTTPRequest) ->
 
 process_reply(Reply, Request) ->
     Response = case Reply of
-        {simple, Simple} -> simple_response(Simple, Request);
-        {error, Reason}  -> error_response(Reason, Request);
-        {ok, Response1}  -> Response1
+        {simple, Simple} ->
+            simple_response(Simple, Request);
+        {error, Reason} ->
+            ?ERROR_MSG("Reason: ~p~n~p", [Reason, erlang:get_stacktrace()]),
+            error_response(Reason, Request);
+        {ok, Response1} ->
+            Response1
     end,
 
     #rest_resp{status = Status,
