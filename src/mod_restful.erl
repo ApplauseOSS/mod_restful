@@ -149,7 +149,8 @@ process(BasePath, #request{host = Host, path = Path} = Request) ->
                 post_process(handle_request(Host, BasePath, Request))
         end
     catch
-        _:_ = _Error ->
+        _:_ = Error ->
+            ?ERROR_MSG("Error in mod_restful:process: ~p~n~p", [Error, erlang:get_stacktrace()]),
             ejabberd_web:error(not_allowed)
     end.
 
